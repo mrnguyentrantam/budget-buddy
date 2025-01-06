@@ -15,6 +15,9 @@ class User(db.Model, UserMixin):
     # Add this line
     budgets = db.relationship('Budget', backref='user', lazy=True)
     
+    # Add this relationship
+    recurring_transactions = db.relationship('RecurringTransaction', backref='user', lazy=True)
+    
     def set_password(self, password):
         self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
         
