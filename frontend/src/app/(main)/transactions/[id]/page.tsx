@@ -70,7 +70,7 @@ const EditTransactionPage = ({ params }: { params: { id: string } }) => {
   };
 
   if (isLoading) {
-    return <div className="p-6">Loading...</div>;
+    return <div className="p-6">Đang tải...</div>;
   }
 
   if (error) {
@@ -84,16 +84,16 @@ const EditTransactionPage = ({ params }: { params: { id: string } }) => {
         className="mb-4 flex items-center text-gray-600 hover:text-gray-800"
       >
         <ArrowLeftIcon className="h-5 w-5 mr-1" />
-        <span>Back</span>
+        <span>Quay lại</span>
       </button>
 
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">Edit Transaction</h1>
+      <h1 className="text-2xl font-bold mb-6 text-gray-800">Sửa Giao Dịch</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Amount Input */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Amount
+            Số tiền
           </label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
@@ -114,7 +114,7 @@ const EditTransactionPage = ({ params }: { params: { id: string } }) => {
         {/* Category Selection */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Category
+            Danh mục
           </label>
           <div className="grid grid-cols-4 gap-2">
             {categories.map((category) => (
@@ -138,21 +138,21 @@ const EditTransactionPage = ({ params }: { params: { id: string } }) => {
         {/* Description Input */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description (Optional)
+            Mô tả (Không bắt buộc)
           </label>
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             className="block w-full px-4 py-2 border border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
             rows={3}
-            placeholder="Add a description..."
+            placeholder="Thêm mô tả..."
           />
         </div>
 
         {/* Date Input */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Date
+            Ngày
           </label>
           <div className="relative">
             <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -172,7 +172,7 @@ const EditTransactionPage = ({ params }: { params: { id: string } }) => {
           disabled={isLoading || !formData.amount || !formData.category_id}
           className="w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? 'Saving...' : 'Save Changes'}
+          {isLoading ? 'Đang lưu...' : 'Lưu thay đổi'}
         </button>
       </form>
     </div>

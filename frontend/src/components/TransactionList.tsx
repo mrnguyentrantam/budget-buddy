@@ -1,4 +1,5 @@
 import { format, parseISO } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 interface Category {
   id: number;
@@ -39,7 +40,7 @@ export const TransactionList = ({ transactions, onEdit, onDelete }: TransactionL
   if (transactions.length === 0) {
     return (
       <div className="text-center py-10 text-gray-500">
-        No transactions found
+        Không tìm thấy giao dịch nào
       </div>
     );
   }
@@ -50,10 +51,10 @@ export const TransactionList = ({ transactions, onEdit, onDelete }: TransactionL
         <div key={date} className="space-y-2">
           <div className="sticky top-0 bg-gray-50 p-2 rounded-lg">
             <h2 className="font-semibold text-gray-600">
-              {format(parseISO(date), 'EEEE, MMMM d, yyyy')}
+              {format(parseISO(date), 'EEEE, dd MMMM yyyy', { locale: vi })}
             </h2>
             <div className="text-sm text-gray-500">
-              {groupedTransactions[date].length} transactions
+              {groupedTransactions[date].length} giao dịch
             </div>
           </div>
 

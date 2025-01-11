@@ -12,6 +12,9 @@ from flask_migrate import Migrate
 from routes.categories import categories_bp
 from routes.budgets import budgets
 from routes.users import users
+from flask_apscheduler import APScheduler
+from services.recurring_transaction_service import RecurringTransactionService
+from routes.admin import admin_bp
 # Load environment variables
 load_dotenv()
 
@@ -52,6 +55,35 @@ app.register_blueprint(auth, url_prefix='/auth')
 app.register_blueprint(categories_bp, url_prefix='/categories')
 app.register_blueprint(budgets, url_prefix='/budgets')
 app.register_blueprint(users, url_prefix='/users')
+app.register_blueprint(admin_bp, url_prefix='/admin')
+
+# Initialize scheduler
+scheduler = APScheduler()
+app.config['SCHEDULER_API_ENABLED'] = True
+scheduler.init_app(app)
+
+# Schedule the recurring transaction job
+@scheduler.task('cron', id='generate_recurring_transactions', hour=0, minute=0)
+def scheduled_task():
+    with app.app_context():
+        try:
+            RecurringTransactionService.generate_pending_transactions()
+            print("Successfully generated recurring transactions")
+        except Exception as e:
+            print(f"Error generating recurring transactions: {e}")
+            db.session.rollback()
+
+# Run once when server starts
+with app.app_context():
+    try:
+        RecurringTransactionService.generate_pending_transactions()
+        print("Initial generation of recurring transactions completed")
+    except Exception as e:
+        print(f"Error in initial generation of recurring transactions: {e}")
+        db.session.rollback()
+
+# Start the scheduler
+scheduler.start()
 
 if __name__ == '__main__':
     app.run(host='localhost', port=8000, debug=True)

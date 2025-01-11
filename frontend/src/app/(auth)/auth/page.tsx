@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function AuthPage() {
-  const { login } = useAuth();
+  const { login, signup } = useAuth();
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
@@ -19,13 +19,24 @@ export default function AuthPage() {
     const formData = new FormData(e.currentTarget);
     
     try {
-      await login(
-        formData.get('email') as string,
-        formData.get('password') as string
-      );
-      router.push('/');
+      if (isLogin) {
+        await login(
+          formData.get('email') as string,
+          formData.get('password') as string
+        );
+        router.push('/');
+      } else {
+        await signup(
+          formData.get('email') as string,
+          formData.get('password') as string,
+          formData.get('name') as string
+        );
+        // After successful registration, switch to login view
+        setIsLogin(true);
+
+      }
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error(isLogin ? 'Login failed:' : 'Signup failed:', error);
       // Handle error (show message to user, etc.)
     }
   };

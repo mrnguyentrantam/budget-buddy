@@ -17,11 +17,11 @@ import {
 } from '@heroicons/react/24/solid';
 
 const navigation = [
-  { name: 'Home', href: '/home', icon: HomeIcon, activeIcon: HomeIconSolid },
-  { name: 'Transactions', href: '/transactions', icon: ArrowTrendingUpIcon, activeIcon: ArrowTrendingUpIconSolid },
-  { name: 'Add', href: '/add', icon: PlusCircleIcon, activeIcon: PlusCircleIconSolid },
-  { name: 'Budget', href: '/budget', icon: ChartPieIcon, activeIcon: ChartPieIconSolid },
-  { name: 'Account', href: '/account', icon: UserIcon, activeIcon: UserIconSolid },
+  { name: 'Trang Chủ', href: '/home', icon: HomeIcon, activeIcon: HomeIconSolid },
+  { name: 'Giao Dịch', href: '/transactions', icon: ArrowTrendingUpIcon, activeIcon: ArrowTrendingUpIconSolid },
+  { name: 'Thêm', href: '/add', icon: PlusCircleIcon, activeIcon: PlusCircleIconSolid },
+  { name: 'Ngân Sách', href: '/budget', icon: ChartPieIcon, activeIcon: ChartPieIconSolid },
+  { name: 'Tài Khoản', href: '/account', icon: UserIcon, activeIcon: UserIconSolid },
 ];
 
 export default function BottomNavigation() {

@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { useEffect } from 'react';
 import BottomNavigation from '@/components/BottomNavigation';
+  import { Toaster } from 'react-hot-toast';
 
 export default function MainLayout({
   children,
@@ -20,6 +21,7 @@ export default function MainLayout({
     <main className="min-h-screen pb-16">
       {children}
       <BottomNavigation />
+      <Toaster position="top-center" />
     </main>
   );
 } 

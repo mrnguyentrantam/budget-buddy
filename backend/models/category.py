@@ -9,7 +9,7 @@ class Category(db.Model):
 
     # Keep the relationship definition here
     transactions = db.relationship('Transaction', back_populates='category') 
-
+    recurring_transactions = db.relationship('RecurringTransaction', back_populates='category')
     def to_dict(self):
         return {
             'id': self.id,

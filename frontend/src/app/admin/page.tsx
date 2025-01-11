@@ -1,8 +1,39 @@
+"use client"
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UsersIcon, FolderIcon, BarChart3Icon } from "lucide-react";
+import { fetchApi } from '@/utils/api';
+
+interface DashboardStats {
+  totalUsers: number;
+  activeCategories: number;
+  totalTransactions: number;
+}
 
 export default function AdminPage() {
+  const [stats, setStats] = useState<DashboardStats>({
+    totalUsers: 0,
+    activeCategories: 0,
+    totalTransactions: 0
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await fetchApi('/admin/stats');
+        setStats(data);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   const adminLinks = [
     {
       title: "User Management",
@@ -60,35 +91,35 @@ export default function AdminPage() {
 
       {/* Quick Stats Section */}
       <div className="mt-12">
-        <h2 className="text-2xl font-semibold mb-6">Quick Overview</h2>
+        <h2 className="text-2xl font-semibold mb-6">Tổng quan nhanh</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Users
+                Tổng số người dùng
               </CardTitle>
               <CardDescription className="text-2xl font-bold">
-                0
+                {isLoading ? "..." : stats.totalUsers}
               </CardDescription>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Active Categories
+                Danh mục đang hoạt động
               </CardTitle>
               <CardDescription className="text-2xl font-bold">
-                0
+                {isLoading ? "..." : stats.activeCategories}
               </CardDescription>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Transactions
+                Tổng số giao dịch
               </CardTitle>
               <CardDescription className="text-2xl font-bold">
-                0
+                {isLoading ? "..." : stats.totalTransactions}
               </CardDescription>
             </CardHeader>
           </Card>

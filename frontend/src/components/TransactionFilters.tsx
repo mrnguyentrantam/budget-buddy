@@ -1,4 +1,5 @@
 import { format, subMonths } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 interface Category {
   id: number;
@@ -29,7 +30,7 @@ export const TransactionFilters = ({
   const monthOptions = Array.from({ length: 12 }, (_, i) => {
     const date = subMonths(new Date(), i);
     return {
-      label: format(date, 'MMMM yyyy'),
+      label: format(date, 'MMMM yyyy', { locale: vi }),
       month: date.getMonth() + 1,
       year: date.getFullYear()
     };
@@ -48,7 +49,7 @@ export const TransactionFilters = ({
         value={selectedCategory || ''}
         onChange={(e) => onCategoryChange(e.target.value ? Number(e.target.value) : null)}
       >
-        <option value="">All Categories</option>
+        <option value="">Tất cả danh mục</option>
         {categories.map((category) => (
           <option key={category.id} value={category.id}>
             {category.icon} {category.name}

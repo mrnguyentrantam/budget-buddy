@@ -10,6 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { fetchApi } from '@/utils/api';
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 interface AddBudgetFormProps {
   categories: Array<{ id: number; name: string }>;
@@ -22,9 +24,11 @@ export function AddBudgetForm({ categories, onBudgetAdded, budgetToEdit }: AddBu
   const [amount, setAmount] = useState(budgetToEdit?.amount?.toString() || '');
   const [startDate, setStartDate] = useState(budgetToEdit?.start_date || '');
   const [endDate, setEndDate] = useState(budgetToEdit?.end_date || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       await fetchApi('/budgets', {
         method: 'POST',
@@ -42,69 +46,71 @@ export function AddBudgetForm({ categories, onBudgetAdded, budgetToEdit }: AddBu
       onBudgetAdded();
     } catch (error) {
       console.error('Error creating budget:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-6 space-y-4">
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Category</label>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="category">Danh mục</Label>
         <Select
           value={selectedCategory}
           onValueChange={setSelectedCategory}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Select a category" />
+            <SelectValue placeholder="Chọn danh mục" />
           </SelectTrigger>
           <SelectContent>
             {categories.map((category) => (
               <SelectItem key={category.id} value={category.id.toString()}>
-                {category.name}
+                {category.icon} {category.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
-      
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Start Date</label>
-        <input
-          type="date"
-          required
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="block w-full px-4 py-2 border border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
-        />
-      </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">End Date</label>
-        <input
-          type="date"
-          required
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className="block w-full px-4 py-2 border border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
-        />
-      </div>
-
-      <div className="relative">
-        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-          ₫
-        </span>
-        <input
+      <div>
+        <Label htmlFor="amount">Số tiền</Label>
+        <Input
           type="number"
-          step="1000"
-          required
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="block w-full pl-8 pr-4 py-2 border border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white"
-          placeholder="0"
+          placeholder="Nhập số tiền"
         />
       </div>
 
-      <Button type="submit" className="w-full">
-        Add Budget
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="startDate">Ngày bắt đầu</Label>
+          <Input
+            type="date"
+            value={startDate.split('T')[0]}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="endDate">Ngày kết thúc</Label>
+          <Input
+            type="date"
+            value={endDate.split('T')[0]}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <Button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full"
+      >
+        {isSubmitting
+          ? "Đang lưu..."
+          : budgetToEdit
+          ? "Cập nhật ngân sách"
+          : "Thêm ngân sách"}
       </Button>
     </form>
   );

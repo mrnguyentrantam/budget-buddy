@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { fetchApi } from '@/utils/api';
-import { AddBudgetForm } from '@/components/AddBudgetForm';
+import { useState, useEffect } from "react";
+import { fetchApi } from "@/utils/api";
+import { AddBudgetForm } from "@/components/AddBudgetForm";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,6 +22,19 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+interface Transaction {
+  id: number;
+  amount: number;
+  created_at: string;
+  description: string;
+  category_id: number;
+  category: {
+    id: number;
+    name: string;
+    icon: string;
+  };
+}
+
 interface Budget {
   id: number;
   amount: number;
@@ -33,13 +46,14 @@ interface Budget {
   category: {
     id: number;
     name: string;
+    icon: string;
   };
 }
 
 const formatVND = (amount: number) => {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
@@ -51,6 +65,10 @@ export default function BudgetPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
   const [budgetToDelete, setBudgetToDelete] = useState<Budget | null>(null);
+  const [expandedBudget, setExpandedBudget] = useState<number | null>(null);
+  const [transactions, setTransactions] = useState<{
+    [key: number]: Transaction[];
+  }>({});
 
   useEffect(() => {
     fetchBudgets();
@@ -59,23 +77,23 @@ export default function BudgetPage() {
 
   const fetchBudgets = async () => {
     try {
-      const response = await fetchApi('/budgets', {
-        method: 'GET',
+      const response = await fetchApi("/budgets", {
+        method: "GET",
       });
       setBudgets(response);
     } catch (error) {
-      console.error('Error fetching budgets:', error);
+      console.error("Error fetching budgets:", error);
     }
   };
 
   const fetchCategories = async () => {
     try {
-      const response = await fetchApi('/categories', {
-        method: 'GET',
+      const response = await fetchApi("/categories", {
+        method: "GET",
       });
       setCategories(response);
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error("Error fetching categories:", error);
     }
   };
 
@@ -100,12 +118,12 @@ export default function BudgetPage() {
   const handleDeleteBudget = async (budget: Budget) => {
     try {
       await fetchApi(`/budgets/${budget.id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
       fetchBudgets();
       setBudgetToDelete(null);
     } catch (error) {
-      console.error('Error deleting budget:', error);
+      console.error("Error deleting budget:", error);
     }
   };
 
@@ -114,44 +132,87 @@ export default function BudgetPage() {
     setBudgetToDelete(budget);
   };
 
+  const fetchTransactionsForBudget = async (budget: Budget) => {
+    try {
+      const response = await fetchApi(
+        `/transactions?category_id=${budget.category_id}&start_date=${budget.start_date}&end_date=${budget.end_date}`,
+        {
+          method: "GET",
+        }
+      );
+      setTransactions((prev) => ({
+        ...prev,
+        [budget.id]: response,
+      }));
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    }
+  };
+
+  const handleBudgetClick = async (budget: Budget) => {
+    if (expandedBudget === budget.id) {
+      setExpandedBudget(null);
+    } else {
+      setExpandedBudget(budget.id);
+      if (!transactions[budget.id]) {
+        await fetchTransactionsForBudget(budget);
+      }
+    }
+  };
+
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Budgets</h1>
+        <h1 className="text-2xl font-bold">Ngân Sách</h1>
         <Dialog open={isModalOpen} onOpenChange={handleModalOpenChange}>
           <DialogTrigger asChild>
-            <Button>Add Budget</Button>
+            <Button>Thêm ngân sách</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{selectedBudget ? 'Edit Budget' : 'Add New Budget'}</DialogTitle>
+              <DialogTitle>
+                {selectedBudget ? "Sửa ngân sách" : "Thêm ngân sách mới"}
+              </DialogTitle>
             </DialogHeader>
-            <AddBudgetForm 
-              categories={categories} 
+            <AddBudgetForm
+              categories={categories}
               onBudgetAdded={handleBudgetAdded}
               budgetToEdit={selectedBudget}
             />
           </DialogContent>
         </Dialog>
       </div>
-      
+
       {/* Budget List */}
       <div className="space-y-4">
         {budgets.map((budget) => {
           const percentage = (budget.total_transactions / budget.amount) * 100;
-          
+
           return (
             <div
               key={budget.id}
               className="p-4 bg-white rounded-lg shadow cursor-pointer"
-              onClick={() => handleEditBudget(budget)}
+              onClick={() => handleBudgetClick(budget)}
             >
               <div className="flex justify-between items-center mb-2">
-                <div>
-                  <h3 className="font-medium">{budget.category.name}</h3>
-                  <p className="text-sm text-gray-500">
-                    {new Date(budget.start_date).toLocaleDateString()} - {new Date(budget.end_date).toLocaleDateString()}
-                  </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">{budget.category.icon}</span>
+                  <div>
+                    <h3 className="font-medium">{budget.category.name}</h3>
+                    <p className="text-sm text-gray-500">
+                      {new Date(budget.start_date).toLocaleDateString("vi-VN", {
+                        day: "numeric",
+                        month: "numeric",
+                        year: "numeric",
+                      })}{" "}
+                      -{" "}
+                      {new Date(budget.end_date).toLocaleDateString("vi-VN", {
+                        day: "numeric",
+                        month: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
                 </div>
                 <Button
                   variant="destructive"
@@ -161,52 +222,100 @@ export default function BudgetPage() {
                   Delete
                 </Button>
               </div>
-              
+
               <div className="space-y-2">
                 <div className="relative h-2 w-full bg-green-500 rounded">
-                  <div 
-                    className="absolute top-0 left-0 h-full bg-red-500 rounded" 
+                  <div
+                    className="absolute top-0 left-0 h-full bg-red-500 rounded"
                     style={{ width: `${Math.min(percentage, 100)}%` }}
                   />
                 </div>
                 <div className="flex justify-between text-sm">
                   <div>
-                    <span className="text-gray-600">Spent: </span>
-                    <span className="font-medium text-red-600">{formatVND(budget.total_transactions)}</span>
+                    <span className="text-gray-600">Đã chi: </span>
+                    <span className="font-medium text-red-600">
+                      {formatVND(budget.total_transactions)}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-gray-600">Budget: </span>
-                    <span className="font-medium text-green-600">{formatVND(budget.amount)}</span>
+                    <span className="text-gray-600">Ngân sách: </span>
+                    <span className="font-medium text-green-600">
+                      {formatVND(budget.amount)}
+                    </span>
                   </div>
                 </div>
                 <div className="text-sm">
-                  <span className="text-gray-600">Remaining: </span>
-                  <span className={`font-medium ${budget.remaining_amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  <span className="text-gray-600">Còn lại: </span>
+                  <span
+                    className={`font-medium ${
+                      budget.remaining_amount < 0
+                        ? "text-red-600"
+                        : "text-green-600"
+                    }`}
+                  >
                     {formatVND(budget.remaining_amount)}
                   </span>
                 </div>
               </div>
+
+              {/* Add transaction list */}
+              {expandedBudget === budget.id && transactions[budget.id] && (
+                <div className="mt-4 border-t pt-4">
+                  <h4 className="font-medium mb-2">Các giao dịch</h4>
+                  <div className="space-y-2">
+                    {transactions[budget.id].map((transaction) => (
+                      <div
+                        key={transaction.id}
+                        className="flex justify-between text-sm"
+                      >
+                        <div>
+                          <span className="text-gray-600">
+                            {new Date(
+                              transaction.created_at
+                            ).toLocaleDateString("vi-VN", {
+                              day: "numeric",
+                              month: "numeric",
+                              year: "numeric",
+                            })}
+                          </span>
+                          <span className="ml-2">
+                            {transaction.description}
+                          </span>
+                        </div>
+                        <span className="text-red-600">
+                          {formatVND(transaction.amount)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
       </div>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!budgetToDelete} onOpenChange={(open) => !open && setBudgetToDelete(null)}>
+      <AlertDialog
+        open={!!budgetToDelete}
+        onOpenChange={(open) => !open && setBudgetToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Bạn có chắc chắn không?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the budget for {budgetToDelete?.category.name}.
+              Hành động này không thể hoàn tác. Điều này sẽ xóa vĩnh viễn ngân sách cho {budgetToDelete?.category.name}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => budgetToDelete && handleDeleteBudget(budgetToDelete)}
+              onClick={() =>
+                budgetToDelete && handleDeleteBudget(budgetToDelete)
+              }
               className="bg-red-600 hover:bg-red-700"
             >
-              Delete
+              Xóa
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -221,10 +330,12 @@ export default function BudgetPage() {
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{selectedBudget ? 'Edit Budget' : 'Add New Budget'}</DialogTitle>
+            <DialogTitle>
+              {selectedBudget ? "Edit Budget" : "Add New Budget"}
+            </DialogTitle>
           </DialogHeader>
-          <AddBudgetForm 
-            categories={categories} 
+          <AddBudgetForm
+            categories={categories}
             onBudgetAdded={handleBudgetAdded}
             budgetToEdit={selectedBudget}
           />
@@ -232,4 +343,4 @@ export default function BudgetPage() {
       </Dialog>
     </div>
   );
-} 
+}
