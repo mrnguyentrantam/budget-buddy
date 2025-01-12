@@ -46,3 +46,4 @@ docker-compose.override.yml
 *.pem
 .cache/ 
 .next/
+.venv/

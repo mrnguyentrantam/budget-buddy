@@ -10,6 +10,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 interface Budget {
   id: number;
@@ -31,6 +40,11 @@ interface Transaction {
     name: string;
     icon: string;
   };
+}
+
+interface DailySpending {
+  date: string;
+  amount: number;
 }
 
 const formatVND = (amount: number) => {
@@ -61,11 +75,37 @@ const formatMonthYear = (value: string) => {
   );
 };
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload || !payload.length) return null;
+
+  const dayTransactions = payload[0].payload.transactions || [];
+
+  return (
+    <div className="bg-white p-4 rounded-lg shadow-lg border">
+      <p className="font-semibold mb-2">
+        {label} - {formatVND(payload[0].value)}
+      </p>
+      <div className="space-y-2 max-h-[300px] overflow-auto">
+        {dayTransactions.map((transaction: Transaction) => (
+          <div key={transaction.id} className="flex justify-between items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">{transaction.category.icon}</span>
+              <span className="text-sm">{transaction.description}</span>
+            </div>
+            <span className="text-sm font-medium">{formatVND(transaction.amount)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export default function Home() {
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthYear());
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dailySpending, setDailySpending] = useState<DailySpending[]>([]);
 
   const fetchData = async () => {
     const [year, month] = selectedMonth.split("-");
@@ -78,6 +118,35 @@ export default function Home() {
 
       setBudgets(budgetsData);
       setTransactions(transactionsData);
+
+      // Group transactions by date
+      const dailyData = transactionsData.reduce((acc: { [key: string]: any }, transaction: Transaction) => {
+        const date = new Date(transaction.created_at).toLocaleDateString('vi-VN', {
+          day: 'numeric',
+          month: 'numeric',
+        });
+        
+        if (!acc[date]) {
+          acc[date] = {
+            amount: 0,
+            transactions: [],
+          };
+        }
+        
+        acc[date].amount += transaction.amount;
+        acc[date].transactions.push(transaction);
+        return acc;
+      }, {});
+
+      const formattedDailyData = Object.entries(dailyData).map(([date, data]) => ({
+        date,
+        amount: data.amount,
+        transactions: data.transactions,
+      }));
+
+      setDailySpending(formattedDailyData.sort((a, b) => 
+        new Date(a.date).getTime() - new Date(b.date).getTime()
+      ));
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -177,6 +246,39 @@ export default function Home() {
         </CardContent>
       </Card>
 
+      {/* Spending Trend Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Xu Hướng Chi Tiêu</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dailySpending}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis 
+                  tickFormatter={(value) => 
+                    new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                      notation: 'compact',
+                      maximumFractionDigits: 1
+                    }).format(value)
+                  }
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar
+                  dataKey="amount"
+                  fill="#ef4444"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Recent Transactions */}
       <Card>
         <CardHeader>
@@ -184,7 +286,7 @@ export default function Home() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {transactions.map((transaction: Transaction) => (
+            {transactions.slice(0, 10).map((transaction: Transaction) => (
               <div
                 key={transaction.id}
                 className="flex justify-between items-center"

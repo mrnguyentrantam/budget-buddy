@@ -30,15 +30,27 @@ export function AddBudgetForm({ categories, onBudgetAdded, budgetToEdit }: AddBu
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await fetchApi('/budgets', {
-        method: 'POST',
-        body: {
+      if (budgetToEdit) {
+        await fetchApi(`/budgets/${budgetToEdit.id}`, {
+          method: 'PUT',
+          body: {
           amount: parseFloat(amount),
           category_id: parseInt(selectedCategory),
           start_date: startDate,
           end_date: endDate,
-        },
-      });
+          },
+        });
+      } else {
+        await fetchApi('/budgets', {
+          method: 'POST',
+          body: {
+            amount: parseFloat(amount),
+            category_id: parseInt(selectedCategory),
+            start_date: startDate,
+            end_date: endDate,
+          },
+        });
+      }
       setAmount('');
       setSelectedCategory('');
       setStartDate('');

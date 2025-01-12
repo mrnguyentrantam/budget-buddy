@@ -4,7 +4,7 @@ services:
   db:
     build:
       context: .
-      dockerfile: Dockerfile.db
+      dockerfile: backend/Dockerfile.db
     ports:
       - "5432:5432"
     volumes:

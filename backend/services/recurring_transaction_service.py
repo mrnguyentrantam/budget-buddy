@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 from models import db, Transaction, RecurringTransaction
 
@@ -7,20 +7,31 @@ class RecurringTransactionService:
     def calculate_next_occurrence(frequency, from_date):
         """
         Calculate the next occurrence date based on frequency.
+        Returns datetime object with time set to midnight.
         Daily = next day
         Weekly = next week
         Monthly = next month
         Yearly = next year
         """
+        # Convert from_date to datetime if it's a date
+        if isinstance(from_date, date):
+            from_date = datetime.combine(from_date, datetime.min.time())
+            
         if frequency == 'daily':
-            return from_date + timedelta(days=1)
+            next_date = from_date + timedelta(days=1)
         elif frequency == 'weekly':
-            return from_date + timedelta(weeks=1)
+            next_date = from_date + timedelta(weeks=1)
         elif frequency == 'monthly':
-            return from_date + relativedelta(months=1)
+            next_date = from_date + relativedelta(months=1)
         elif frequency == 'yearly':
-            return from_date + relativedelta(years=1)
-        return None
+            next_date = from_date + relativedelta(years=1)
+        else:
+            return None
+            
+        # Ensure we return a datetime object
+        if isinstance(next_date, date):
+            return datetime.combine(next_date, datetime.min.time())
+        return next_date
 
     @staticmethod
     def generate_pending_transactions():
@@ -31,7 +42,6 @@ class RecurringTransactionService:
         
         for recurring_tx in recurring_transactions:
             next_date = recurring_tx.next_occurrence
-            
             # Skip if no next occurrence or if it's not today
             if not next_date or next_date != today:
                 continue
@@ -40,21 +50,22 @@ class RecurringTransactionService:
                 recurring_tx.is_active = False
                 continue
 
-            # Create new transaction only if next_occurrence is today
             new_transaction = Transaction(
                 user_id=recurring_tx.user_id,
                 category_id=recurring_tx.category_id,
                 amount=recurring_tx.amount,
-                description=f"{recurring_tx.description} (Recurring)",
-                created_at=next_date
+                description=f"{recurring_tx.description} (Chi phí lặp lại)",
+                created_at=datetime.fromisoformat(next_date.isoformat()),
+                updated_at=datetime.fromisoformat(next_date.isoformat())
             )
-            
-            # Calculate and update next occurrence
+
             recurring_tx.last_generated = next_date
             recurring_tx.next_occurrence = RecurringTransactionService.calculate_next_occurrence(
                 recurring_tx.frequency, 
                 next_date
             )
+            print(f"Creating new transaction for recurring transaction {recurring_tx.id}, next_occurrence: {next_date}")
+
             
             db.session.add(new_transaction)
             print(f"New transaction created: {new_transaction.to_dict()}")

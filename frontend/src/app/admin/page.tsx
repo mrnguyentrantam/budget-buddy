@@ -36,31 +36,24 @@ export default function AdminPage() {
 
   const adminLinks = [
     {
-      title: "User Management",
-      description: "Manage user accounts, permissions, and roles",
+      title: "Quản lý người dùng",
+      description: "Quản lý tài khoản, quyền hạn và vai trò người dùng",
       href: "/admin/users",
       icon: UsersIcon,
       color: "text-blue-500"
     },
     {
-      title: "Categories",
-      description: "Manage transaction categories and budgets",
+      title: "Danh mục",
+      description: "Quản lý danh mục giao dịch và ngân sách",
       href: "/admin/categories",
       icon: FolderIcon,
       color: "text-green-500"
     },
-    {
-      title: "Statistics",
-      description: "View system statistics and analytics",
-      href: "/admin/stats",
-      icon: BarChart3Icon,
-      color: "text-purple-500"
-    }
   ];
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-8">Trang Quản Trị</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {adminLinks.map((link) => (
@@ -81,7 +74,7 @@ export default function AdminPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center text-sm text-muted-foreground">
-                  Click to manage →
+                  Nhấn để quản lý →
                 </div>
               </CardContent>
             </Card>
@@ -91,35 +84,35 @@ export default function AdminPage() {
 
       {/* Quick Stats Section */}
       <div className="mt-12">
-        <h2 className="text-2xl font-semibold mb-6">Tổng quan nhanh</h2>
+        <h2 className="text-2xl font-semibold mb-6">Tổng Quan Hệ Thống</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Tổng số người dùng
+                Tổng Số Người Dùng
               </CardTitle>
               <CardDescription className="text-2xl font-bold">
-                {isLoading ? "..." : stats.totalUsers}
+                {isLoading ? "Đang tải..." : stats.totalUsers}
               </CardDescription>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Danh mục đang hoạt động
+                Danh Mục Đang Hoạt Động
               </CardTitle>
               <CardDescription className="text-2xl font-bold">
-                {isLoading ? "..." : stats.activeCategories}
+                {isLoading ? "Đang tải..." : stats.activeCategories}
               </CardDescription>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Tổng số giao dịch
+                Tổng Số Giao Dịch
               </CardTitle>
               <CardDescription className="text-2xl font-bold">
-                {isLoading ? "..." : stats.totalTransactions}
+                {isLoading ? "Đang tải..." : stats.totalTransactions}
               </CardDescription>
             </CardHeader>
           </Card>
